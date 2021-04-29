@@ -1,4 +1,81 @@
-	
+我開了一個Console專案，來模擬兩個cs檔案之間傳值，希望能幫上忙。
+
+//MainCS
+namespace testIfElse//請忽略我的專案名稱XD
+{
+    class Program
+    {
+        public static bool Monitor = false;//宣告public的全域變數，讓其他CS檔案能夠改變這個值
+        static Timer t1; //因為我要模擬一個監控，所以我用timer每兩秒做一次偵測
+        static int ResultParam;//該專案模擬兩個接值的方法，這是另外其中一種方法需要的物件。
+
+        static void Main(string[] args)
+        {
+            ProccesingOliver(1,2);//程式啟動時，執行這個方法
+
+            t1 = new Timer();
+            t1.Interval = 2000; //2s
+            t1.Elapsed += CheckStatus;//每兩秒呼叫一次，我要模擬你的TCP監控是否有人連線
+            t1.AutoReset = true;//每兩秒重做一次
+            t1.Enabled = true;//啟動計時
+            Console.WriteLine("若要離開，請按任何按鍵");
+            Console.ReadLine();//只是為了讓畫面不要消失，你就可以看見每兩秒的監控
+        }
+
+        public static int FromOliver(int param)//這個方法是第二個CS檔案呼叫的，然後將傳來的值，給主檔CS上面宣告的整數
+        {
+            ResultParam = param;
+            return ResultParam;
+        }
+
+        private static void ProccesingOliver(int param1, int param2)
+        {
+            Console.WriteLine("請輸入代號");
+            int startparam = Int32.Parse(Console.ReadLine());//輸入一個值
+            Oliver.getStart(startparam, param1, param2);//這時候會將 輸入的值，跟我給的預設兩個參數另外一個CS檔處理
+        }        
+
+        public static void getResult(int result)//結果
+        {
+            Console.WriteLine("The Result From another Class is : {0}" ,result); //這個result的值是從主檔CS主動去第二個CS檔案拿的
+            Console.WriteLine("The Result From FromOliver Function is : {0}", ResultParam); //這個result的值，是第二個CS檔案傳過來給主檔的值。 透過FromOliver(int param)這個方法得到。
+            Console.ReadLine();
+        }
+
+        private static void CheckStatus(Object source, System.Timers.ElapsedEventArgs e)//每兩秒要做的事情
+        {            
+            if (Monitor == true)//當布林植改變時。 改變的時機是在另外一個CS檔，改變的
+            {
+                getResult(Oliver.r1);//條件成立，執行getResult
+            }
+        }
+    }
+}
+
+//第二個CS檔
+namespace testIfElse
+{
+    class Oliver
+    {
+        public static int r1;//宣告public物件，讓主程式可以主動抓
+
+        public static void getStart(int sp, int p1, int p2){  //這裡接從主檔傳來的值
+            if (sp == 100) // 如果輸入的代號 = 100，才會執行下面的算術
+            {
+                doMath(p1, p2); //把我預設的參數丟進去
+            }
+        }
+
+        private static void doMath(int p1, int p2)
+        {
+            Console.WriteLine("A+B = {0}" , p1 + p2);//顯示算數結果
+            r1 = p1 + p2;
+            Program.FromOliver(p1+p2); //我主動從第二個CS檔案傳值回去給主檔
+            Program.Monitor = true;//我改變主檔的布林植(為了監控)
+        }
+    }
+}
+
 
 ================================
 
